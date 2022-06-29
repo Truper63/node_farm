@@ -1,19 +1,10 @@
 const fs = require("fs");
 const http = require("http");
-const { dirname } = require("path");
+const url = require("url");
 
-const replaceTemplate = (template, product) => {
-  let output = template;
-  output = output.replace(/{%ID%}/g, product.id);
-  output = output.replace(/{%IMAGE%}/g, product.image);
-  output = output.replace(/{%PRODUCTNAME%}/g, product.productName);
-  product.organic
-    ? (output = output.replace(/{%NOT_ORGANIC%}/g, ""))
-    : (output = output.replace(/{%NOT_ORGANIC%}/g, "not-organic"));
-  output = output.replace(/{%QUANTITY%}/g, product.quantity);
-  output = output.replace(/{%PRICE%}/g, product.price);
-  return output;
-};
+const replaceTemplate = require("./modules/replaceTemplate");
+
+const { dirname } = require("path");
 
 const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8");
 const productData = JSON.parse(data);
@@ -32,10 +23,10 @@ const tempProduct = fs.readFileSync(
 );
 
 const server = http.createServer((req, res) => {
-  const pathName = req.url;
+  const { query, pathname } = url.parse(req.url, true);
 
   // Overview page
-  if (pathName === "/" || pathName === "/overview") {
+  if (pathname === "/" || pathname === "/overview") {
     const cardsHtml = productData
       .map((element) => replaceTemplate(tempCard, element))
       .join("");
@@ -43,10 +34,12 @@ const server = http.createServer((req, res) => {
     const overview = tempOverview.replace("{%PRODUCT_CARDS%}", cardsHtml);
     res.writeHead(200, { "Content-type": "text/html" });
     res.end(overview);
-  } else if (pathName === "/product") {
+  } else if (pathname === "/product") {
+    const product = productData[query.id];
+    const productPage = replaceTemplate(tempProduct, product);
     res.writeHead(200, { "Content-type": "text/html" });
     res.end(productPage);
-  } else if (pathName === "/api") {
+  } else if (pathname === "/api") {
     res.writeHead(200, { "Content-type": "application/json" });
     res.end(data);
   } else {
