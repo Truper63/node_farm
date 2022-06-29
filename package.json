@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Truper63/node_farm/issues"
   },
-  "homepage": "https://github.com/Truper63/node_farm#readme"
+  "homepage": "https://github.com/Truper63/node_farm#readme",
+  "dependencies": {
+    "slugify": "^1.6.5"
+  }
 }
